@@ -21,9 +21,10 @@ double dt = 0.1;
 // This is the length from front to CoG that has a similar radius.
 const double Lf = 2.67;
 
+// ref values for the objective function
 double ref_cte = 0;
 double ref_epsi = 0;
-double ref_v = 50;
+double ref_v = 75;
 
 size_t x_start = 0;
 size_t y_start = x_start + N;
@@ -55,11 +56,13 @@ class FG_eval {
       fg[0] += CppAD::pow(vars[v_start + i] - ref_v, 2); 
     }
 
+    // Minimize the use of actuators.
     for(int i=0; i < N-1; i++){
       fg[0]+= 5*CppAD::pow(vars[delta_start + i], 2);
       fg[0]+= 5*CppAD::pow(vars[a_start + i], 2);
     }
 
+    // Minimize the value gap between sequential actuations.
     for (int i = 0; i < N-2; i++){
       fg[0]+= 200*CppAD::pow(vars[delta_start + i + 1] - vars[delta_start + i], 2);      
       fg[0]+= 10*CppAD::pow(vars[a_start + i + 1] - vars[a_start + i], 2);
@@ -93,6 +96,12 @@ class FG_eval {
 
       AD<double> delta0 = vars[delta_start + i];
       AD<double> a0 = vars[a_start + i];
+
+      // Account for latency: use previous actuations as dt = Latency = 100ms
+      if (i > 1) {   
+        a0 = vars[a_start + i - 2];
+        delta0 = vars[delta_start + i - 2];
+      }
 
       AD<double>  f0 = coeffs[0] + coeffs[1] * x0 + coeffs[2] * x0 *x0 +coeffs[3] *x0*x0*x0;
       AD<double>  psides0 = CppAD::atan(3*coeffs[3]*x0 + 2*coeffs[2]*x0 + coeffs[1]);

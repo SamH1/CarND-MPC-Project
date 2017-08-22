@@ -1,0 +1,26 @@
+The Model
+
+- State is defined by x and y coordinates of the cars angle psi and speed v. (main.cpp Line 90-93)
+- We calculate cte and psi error (epsi) and we add them to the state vector
+- Actuator outputs are the acceleration and the steering angle.
+- The model uses the state and actuations from the previous timestep to calculate the state for the current timestep based on Lesson 19 - section 6 equations
+
+for update we used a non-linear solver with a cost function as described in Lesson 19 Quizz 
+- we define the cost related to the reference state and to Minimize the use of actuators and Minimize the value gap between sequential actuations and we weights have been tuned to make transitions smoother (MPC.cpp - line 52-68)
+
+
+Timestep Length and Elapsed Duration (N & dt)
+
+N = 10
+dt = 0.1
+- As suggested by Udacity's project support video for the project.Experimentally a higher value of N (20 for exemple) took more time to compute and encresed the tendancy to get off the track. Same thing for smaller values of dt, computation became slower.
+
+
+Polynomial Fitting and MPC Preprocessing
+
+- To symplify polynomial fit, we define px, py and car orientation as reference coordinate system (we apply rotation to waypoints and calculate their relative coordinates main.cpp Line 107-114)
+
+
+Model Predictive Control with Latency
+
+- In our final parameter setting timestep (dt) = Latency = 100ms. The result of that is that the actuations are applied one timestep later. We updated the equations to account for that (MPC.cpp - Line 100-104)  
